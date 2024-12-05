@@ -1,0 +1,229 @@
+@model IEnumerable<PA3.Models.Course>
+@using PA3.Models
+@{
+  ViewData["Title"] = "Index";
+  var currentSort = ViewData["CurrentSort"] as string ?? "";
+  var currentFilter = ViewData["CurrentFilter"] as string ?? "";
+  var selectedTerm = ViewData["SelectedTerm"] as string ?? "";
+  var selectedYear = ViewData["SelectedYear"] as int?;
+  var selectedProgram = ViewData["SelectedProgram"] as int?;
+
+  var currentPage = (int)ViewData["CurrentPage"];
+  var totalPages = (int)ViewData["TotalPages"];
+}
+
+<h1>Courses</h1>
+<div class="container-fluid mb-6">
+  <div class="row align-items-center">
+    <!-- Search Box -->
+    <div class="col-auto" style="margin: 10px 0px">
+      <form asp-action="Index" method="get" class="d-flex align-items-center gap-2">
+        <label>Find Course by title:</label>
+        <input type="text" name="searchString" value="@currentFilter" class="form-control" style="width: 120px;" />
+
+        <input type="hidden" name="selectedTerm" value="@selectedTerm" />
+        <input type="hidden" name="selectedYear" value="@selectedYear" />
+        <input type="hidden" name="sortOrder" value="@currentSort" />
+        <input type="hidden" name="programId" value="@selectedProgram" />
+        <button type="submit" class="btn btn-primary" style="min-width: 120px;">Search</button>
+        <a asp-action="Index" class="btn btn-link">Back to Full List</a>
+      </form>
+    </div>
+
+    <!-- Term and Year Filters -->
+    <div class="col-auto ms-auto">
+      <form asp-action="Index" method="get" class="d-flex align-items-center gap-2">
+        <label class="me-2">Term:</label>
+        <select name="selectedTerm" class="form-select me-2">
+          <option value="">All Terms</option>
+          @foreach (SelectListItem term in (ViewData["Terms"] as SelectList))
+          {
+            <option value="@term.Text" selected="@(term.Text == ViewData["SelectedTerm"]?.ToString())">
+              @term.Text
+            </option>
+          }
+        </select>
+
+        <label>Year:</label>
+        <select name="selectedYear" class="form-select" style="width: auto;">
+          <option value="">All Years</option>
+          @foreach (SelectListItem year in (IEnumerable<SelectListItem>)ViewData["Years"])
+          {
+            <option value="@year.Value" selected="@year.Selected">@year.Text</option>
+          }
+        </select>
+
+        <input type="hidden" name="searchString" value="@currentFilter" />
+        <input type="hidden" name="sortOrder" value="@currentSort" />
+        <input type="hidden" name="programId" value="@selectedProgram" />
+        <button type="submit" class="btn btn-primary" style="min-width: 160px;">View Courses</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Program filters -->
+<div class="row mb-3">
+  <div class="col">
+    @foreach (UGProgram program in ViewData["Programs"] as IEnumerable<UGProgram>)
+    {
+      <a asp-action="Index" asp-route-programId="@program.ID" asp-route-searchString="@currentFilter"
+        asp-route-selectedTerm="@selectedTerm" asp-route-selectedYear="@selectedYear" asp-route-sortOrder="@currentSort"
+        class="btn btn-primary me-2 @(selectedProgram == program.ID ? "active" : "")">
+        @program.Name
+      </a>
+    }
+  </div>
+</div>
+</div>
+
+<table class="table container">
+  <thead>
+    <tr>
+      <th>
+        <a asp-action="Index" asp-route-sortOrder="@ViewData["CodeSortParam"]">
+          @Html.DisplayNameFor(model => model.Code)
+          @if (currentSort == "")
+          {
+            <span>▲</span>
+          }
+          else if (currentSort == "code_desc")
+          {
+            <span>▼</span>
+          }
+        </a>
+      </th>
+      <th>
+        <a asp-action="Index" asp-route-sortOrder="@ViewData["TitleSortParam"]">
+          @Html.DisplayNameFor(model => model.Title)
+          @if (currentSort == "title")
+          {
+            <span>▲</span>
+          }
+          else if (currentSort == "title_desc")
+          {
+            <span>▼</span>
+          }
+        </a>
+      </th>
+      <th>
+        <a asp-action="Index" asp-route-sortOrder="@ViewData["SectionSortParam"]">
+          @Html.DisplayNameFor(model => model.Section)
+          @if (currentSort == "section")
+          {
+            <span>▲</span>
+          }
+          else if (currentSort == "section_desc")
+          {
+            <span>▼</span>
+          }
+        </a>
+      </th>
+      <th>
+        <a asp-action="Index" asp-route-sortOrder="@ViewData["TermSortParam"]">
+          @Html.DisplayNameFor(model => model.Term)
+          @if (currentSort == "term")
+          {
+            <span>▲</span>
+          }
+          else if (currentSort == "term_desc")
+          {
+            <span>▼</span>
+          }
+        </a>
+      </th>
+      <th>
+        <a asp-action="Index" asp-route-sortOrder="@ViewData["YearSortParam"]">
+          @Html.DisplayNameFor(model => model.Year)
+          @if (currentSort == "year")
+          {
+            <span>▲</span>
+          }
+          else if (currentSort == "year_desc")
+          {
+            <span>▼</span>
+          }
+        </a>
+      </th>
+      <th>
+        <a asp-action="Index" asp-route-sortOrder="@ViewData["ProgramSortParam"]">
+          @Html.DisplayNameFor(model => model.Program)
+          @if (currentSort == "program")
+          {
+            <span>▲</span>
+          }
+          else if (currentSort == "program_desc")
+          {
+            <span>▼</span>
+          }
+        </a>
+      </th>
+      <th>
+        @Html.DisplayNameFor(model => model.IsOpenToEnroll)
+      </th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    @foreach (var item in Model)
+    {
+      <tr>
+        <td>@Html.DisplayFor(modelItem => item.Code)</td>
+        <td>@Html.DisplayFor(modelItem => item.Title)</td>
+        <td>@Html.DisplayFor(modelItem => item.Section)</td>
+        <td>@Html.DisplayFor(modelItem => item.Term)</td>
+        <td>@Html.DisplayFor(modelItem => item.Year)</td>
+        <td>
+          @if (item.IsOpenToEnroll)
+          {
+            <span class="badge bg-success">Open</span>
+          }
+          else
+          {
+            <span class="badge bg-danger">Closed</span>
+          }
+        </td>
+        <td>@Html.DisplayFor(modelItem => item.Program.Name)</td>
+        <td>
+          <a asp-action="Edit" asp-route-id="@item.ID">Edit</a> |
+          @* <a asp-action="Details" asp-route-id="@item.ID">Details</a> | *@
+          <a asp-action="CourseManage" asp-route-id="@item.ID">Manage</a> |
+          <a asp-action="Delete" asp-route-id="@item.ID">Delete</a>
+        </td>
+      </tr>
+    }
+  </tbody>
+</table>
+
+
+<nav aria-label="Page navigation" class="mt-4">
+  <div class="d-flex justify-content-center align-items-center gap-2">
+    <!-- Previous button -->
+    <a asp-action="Index" asp-route-pageNumber="@(currentPage - 1)" asp-route-sortOrder="@ViewData["CurrentSort"]"
+      asp-route-searchString="@ViewData["CurrentFilter"]" asp-route-selectedTerm="@ViewData["SelectedTerm"]"
+      asp-route-selectedYear="@ViewData["SelectedYear"]" asp-route-programId="@ViewData["SelectedProgram"]"
+      class="btn btn-primary @(currentPage == 1 ? "disabled" : "")" aria-disabled="@(currentPage == 1)">
+      Previous
+    </a>
+
+    <!-- Page numbers -->
+    @for (int i = 1; i <= totalPages; i++)
+    {
+      <a asp-action="Index" asp-route-pageNumber="@i" asp-route-sortOrder="@ViewData["CurrentSort"]"
+        asp-route-searchString="@ViewData["CurrentFilter"]" asp-route-selectedTerm="@ViewData["SelectedTerm"]"
+        asp-route-selectedYear="@ViewData["SelectedYear"]" asp-route-programId="@ViewData["SelectedProgram"]"
+        class="text-primary text-decoration-none @(i == currentPage ? "fw-bold" : "")" style="font-size: 1.1em;">
+        [@i]
+      </a>
+    }
+
+    <!-- Next button -->
+    <a asp-action="Index" asp-route-pageNumber="@(currentPage + 1)" asp-route-sortOrder="@ViewData["CurrentSort"]"
+      asp-route-searchString="@ViewData["CurrentFilter"]" asp-route-selectedTerm="@ViewData["SelectedTerm"]"
+      asp-route-selectedYear="@ViewData["SelectedYear"]" asp-route-programId="@ViewData["SelectedProgram"]"
+      class="btn btn-primary @(currentPage == totalPages ? "disabled" : "")"
+      aria-disabled="@(currentPage == totalPages)">
+      Next
+    </a>
+  </div>
+</nav>

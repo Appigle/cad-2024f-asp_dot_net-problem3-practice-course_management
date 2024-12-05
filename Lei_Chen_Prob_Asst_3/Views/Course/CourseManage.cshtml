@@ -1,0 +1,164 @@
+@model PA3.Models.Course;
+@using PA3.Models
+@{
+  ViewData["Title"] = "Course Management";
+  var enrolledStudents = ViewBag.EnrolledStudents as List<Student>;
+  var eligibleStudents = ViewBag.EligibleStudents as SelectList;
+  var feePolicies = ViewBag.FeePolicies as List<FeePolicy>;
+}
+
+<h1>Course Management</h1>
+
+<div>
+  <h4>@Model.Code - @Model.Title</h4>
+  <hr />
+  <dl class="row">
+    <dt class="col-sm-2">Section</dt>
+    <dd class="col-sm-10">@Model.Section</dd>
+
+    <dt class="col-sm-2">Term</dt>
+    <dd class="col-sm-10">@Model.Term</dd>
+
+    <dt class="col-sm-2">Year</dt>
+    <dd class="col-sm-10">@Model.Year</dd>
+
+    <dt class="col-sm-2">Program</dt>
+    <dd class="col-sm-10">@Model.Program?.Name</dd>
+
+    <dt class="col-sm-2">Enrollment Status</dt>
+    <dd class="col-sm-10">
+      <span class="badge @(Model.IsOpenToEnroll ? "bg-success" : "bg-danger")">
+        @(Model.IsOpenToEnroll ? "Open" : "Closed")
+      </span>
+    </dd>
+  </dl>
+</div>
+
+<h4>Enrolled Students</h4>
+@if (enrolledStudents != null && enrolledStudents.Any())
+{
+  <table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Student ID</th>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Status</th>
+      <th>Course Load</th>
+      <th>Full Time</th>
+      <th>Balance</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    @foreach (var student in enrolledStudents)
+      {
+        <tr>
+          <td>@student.StudentID</td>
+          <td>@student.FullName</td>
+          <td>@student.Type</td>
+          <td>@student.Status</td>
+          <td>@student.CourseLoad</td>
+          <td>
+            <span class="badge @(student.IsFullTime ? "bg-primary" : "bg-secondary")">
+              @(student.IsFullTime ? "Yes" : "No")
+            </span>
+          </td>
+          <td>@student.Balance.ToString("C")</td>
+          <td>
+            <form asp-action="DropStudent" method="post" style="display: inline;">
+              <input type="hidden" name="studentId" value="@student.StudentID" />
+              <input type="hidden" name="courseId" value="@Model.ID" />
+              <button type="submit" class="btn btn-danger btn-sm"
+                onclick="return confirm('Are you sure you want to drop this student?')">
+                Drop
+              </button>
+            </form>
+            |
+            <a asp-action="StudentAccount" asp-route-id="@student.StudentID" class="btn btn-info btn-sm">Account</a>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}
+else
+{
+  <div class="alert alert-info">
+  No students currently enrolled.
+</div>
+}
+
+<div class="mt-4">
+  @if (Model.IsOpenToEnroll)
+  {
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">Enroll New Student</h5>
+      </div>
+      <div class="card-body">
+        @if (feePolicies != null)
+        {
+          <div class="mb-3">
+            <h6>Current Fee Structure:</h6>
+            <div class="row">
+              @foreach (var policy in feePolicies)
+              {
+                <div class="col-md-6">
+                  <div class="card mb-2">
+                    <div class="card-body">
+                      <h6 class="card-title">@policy.Category</h6>
+                      <p class="card-text">
+                        Tuition: @policy.TuitionFee.ToString("C")<br />
+                        Registration: @policy.RegistrationFee.ToString("C")<br />
+                        Facilities: @policy.FacilitiesFee.ToString("C")<br />
+                        Union: @policy.UnionFee.ToString("C")
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <form asp-action="EnrollStudent" method="post" class="row g-3">
+          <input type="hidden" name="courseId" value="@Model.ID" />
+          <div class="col-auto">
+            <select name="studentId" class="form-select" required>
+              <option value="">Select Student</option>
+              @if (eligibleStudents != null)
+              {
+                @foreach (var student in eligibleStudents)
+                {
+                  <option value="@student.Value">@student.Text</option>
+                }
+              }
+            </select>
+          </div>
+          <div class="col-auto">
+            <button type="submit" class="btn btn-primary">Enroll Student</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+  else
+  {
+    <div class="alert alert-warning">
+      <i class="bi bi-exclamation-triangle me-2"></i>
+      Course is closed, and is not accepting new students.
+    </div>
+  }
+</div>
+
+@if (TempData["Error"] != null)
+{
+  <div class="alert alert-danger mt-3">
+  @TempData["Error"]
+</div>
+}
+
+<div class="mt-3">
+  <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+</div>

@@ -1,0 +1,60 @@
+@model PA3.Models.Student
+@{
+  ViewData["Title"] = "Accounts Statement";
+  var statement = Model.FinancialStatement;
+}
+
+<pre style="font-family: Consolas, monospace; font-size: 16px; white-space: pre-wrap;">
+Accounts Statement
+
+Date Changed/Created: @statement?.LastChanged.ToString("MM/dd/yyyy hh:mm:ss tt")
+
+Student ID: @Model.StudentID
+Name: @Model.FirstName @Model.LastName
+Fee Policy: @statement?.FeePolicy?.Category
+
+Balance = @Model.Balance.ToString("C")
+--------------------------------------------
+@if (statement?.Entries != null)
+  {
+    @:  Registration Fee                                @statement.FeePolicy.RegistrationFee.ToString("C")
+
+    @foreach (var entry in statement.Entries.Where(e => e.Description.Contains("Tuition")))
+    {
+      @:Tuition Fee(Course Code)                       @entry.Value.ToString("C")
+    }
+    @:  Facilities Fee                                 @statement.FeePolicy.FacilitiesFee.ToString("C")
+    @:  Student Union Fee                              @statement.FeePolicy.UnionFee.ToString("C")
+    @:  Tax(at 12.99 %)                                @((Model.Balance * 0.1299m).ToString("C"))
+    @:--------------------------------------------
+    @:  Total Amount Owed                              @Model.Balance.ToString("C")
+    @:--------------------------------------------
+  }
+</pre>
+
+<div style="margin-top: 20px; margin-left: 8px;">
+  <a asp-action="CourseManage" asp-route-id="@ViewBag.CourseId" style="background-color: rgb(108, 117, 125);
+              color: white;
+              padding: 10px 20px;
+              text-decoration: none;
+              border-radius: 6px;
+              font-family: system-ui;
+              font-size: 16px;">
+    Back to Course
+  </a>
+</div>
+
+<style>
+  pre {
+    line-height: 1.5;
+    padding: 20px;
+    margin: 0;
+    background: transparent;
+    border: none;
+  }
+
+  a:hover {
+    background-color: rgb(95, 103, 110);
+    text-decoration: none;
+  }
+</style>
